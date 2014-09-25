@@ -16,8 +16,8 @@ public class NaiveBayes {
 	int totalTheme;							//总的主题数目
 	Map<Integer,String> numBoardMap;			//
 	
-	double[][] averagePerWord;
-	double[][] variancePerWord;
+	double[][] averagePerWord;				//平均数矩阵
+	double[][] variancePerWord;				//方差矩阵
 	
 	
 	public NaiveBayes(int countPost,int countKeywords,int countTheme){
@@ -82,8 +82,11 @@ public class NaiveBayes {
 			}
 		}
 	}
-	
-	public void discreteContinuousAttributeNBD(double[][] tfidfMatrix){
+	/*
+	 *  @param tfidfMatrix矩阵是一个频数矩阵，根据矩阵每个词的条件概率，并存放在perWordProbability矩阵中
+	 *  
+	 */
+	public void discreteContinuousAttributeNBD(double[][] tfidfMatrix){			
 		Iterator<Integer> iterator = numPostEveryTheme.iterator();
 		int flagRow = 0;
 		int flagTheme=0;
@@ -104,9 +107,14 @@ public class NaiveBayes {
 				sum=sum+perWordProbability[i][j];
 			}
 			for(int j=0;j<totalKeywords;j++)
-				perWordProbability[i][j] = perWordProbability[i][j]/sum;
+				perWordProbability[i][j] = (perWordProbability[i][j]+0.001)/(sum+(double)(totalKeywords)*0.001);
 		}
 	}
+	
+	/*
+	 * @param 传入的tfidfMatrix是一个计算好tfidf值得矩阵，值是连续的，需要对其进行离散化。
+	 * 计算得到的
+	 */
 	
 	public void discreteContinuousAttributeNBCD(double[][] tfidfMatrix){
 		Iterator<Integer> iterator = numPostEveryTheme.iterator();
@@ -143,7 +151,7 @@ public class NaiveBayes {
 				sum = sum+perWordProbability[i][j];
 			}
 			for(int j = 0;j<totalKeywords;j++)
-				perWordProbability[i][j] = (perWordProbability[i][j]+1)/(sum+totalKeywords);
+				perWordProbability[i][j] = (perWordProbability[i][j]+0.001)/(sum+(double)(totalKeywords)*0.001);
 		}
 	}
 	
@@ -188,6 +196,8 @@ public class NaiveBayes {
 				int column = iterator.next();
 				probClassify[i]=probClassify[i]+Math.log(perWordProbability[i][column]);
 			}
+			probClassify[i] = probClassify[i]+Math.log(arrayPriorProbability.get(i).doubleValue());
+			
 		}
 		int max=0;
 		for(int i=0;i<totalTheme;i++){
@@ -209,6 +219,7 @@ public class NaiveBayes {
 				int column = iterator.next();
 				probClassify[i] = probClassify[i]+Math.log(perWordProbability[i][column]);
 			}
+			probClassify[i] = probClassify[i]+Math.log(arrayPriorProbability.get(i).doubleValue());
 		}
 		int max = 0;
 		for(int i = 0;i<totalTheme;i++){
