@@ -7,13 +7,13 @@ import java.util.Set;
 
 public class NaiveBayes {
 	
-	ArrayList<Double> arrayPriorProbability;	//ÏÈÑé¸ÅÂÊ
-	ArrayList<Integer> numPostEveryTheme;		//Ã¿¸ö·ÖÀàÌû×ÓµÄÊıÄ¿
-	ArrayList<Integer> numWordsEveryTheme;		//Ã¿¸ö·ÖÀà´ÊµÄ¸öÊı
-	int totalPost;							//×ÜµÄÌû×ÓÊıÄ¿
-	double[][] perWordProbability;			//Ã¿¸ö´ÊÔÚÃ¿¸ö·ÖÀàÉÏµÄÌõ¼ş¸ÅÂÊ
-	int totalKeywords;						//×ÜµÄ¹Ø¼ü´ÊÊıÄ¿
-	int totalTheme;							//×ÜµÄÖ÷ÌâÊıÄ¿
+	ArrayList<Double> arrayPriorProbability;	//å…ˆéªŒæ¦‚ç‡
+	ArrayList<Integer> numPostEveryTheme;		//æ¯ä¸ªåˆ†ç±»å¸–å­çš„æ•°ç›®
+	ArrayList<Integer> numWordsEveryTheme;		//æ¯ä¸ªåˆ†ç±»è¯çš„ä¸ªæ•°
+	int totalPost;							//æ€»çš„å¸–å­æ•°ç›®
+	double[][] perWordProbability;			//æ¯ä¸ªè¯åœ¨æ¯ä¸ªåˆ†ç±»ä¸Šçš„æ¡ä»¶æ¦‚ç‡
+	int totalKeywords;						//æ€»çš„å…³é”®è¯æ•°ç›®
+	int totalTheme;							//æ€»çš„ä¸»é¢˜æ•°ç›®
 	Map<Integer,String> numBoardMap;			//
 	
 	double[][] averagePerWord;
@@ -30,7 +30,6 @@ public class NaiveBayes {
 		averagePerWord = new double[totalTheme][totalKeywords];
 		variancePerWord = new double[totalTheme][totalKeywords];
 		numBoardMap = new HashMap<Integer, String>();
-		
 		initial();
 	}
 	
@@ -61,13 +60,13 @@ public class NaiveBayes {
 		this.totalPost = countPost;
 	}
 	
-	public void priorProbability(int i){		//¼ÆËãÏÈÑé¸ÅÂÊ
+	public void priorProbability(int i){		//è®¡ç®—å…ˆéªŒæ¦‚ç‡
 		double d = numPostEveryTheme.get(i).doubleValue()/totalPost;
 		arrayPriorProbability.add(d);
 		return ;
 	}
 	
-	void perWordProbability(double[][] tfidfMatrix,int sumWord,int i){		//¼ÆËãÃ¿¸ö´ÊµÄÈ¨ÖØ
+	void perWordProbability(double[][] tfidfMatrix,int sumWord,int i){		//è®¡ç®—æ¯ä¸ªè¯çš„æƒé‡
 		
 	}
 	
@@ -148,7 +147,7 @@ public class NaiveBayes {
 		}
 	}
 	
-	public void gaussianDistribution(double[][] tfidfMatrix){		//¸ßË¹·Ö²¼
+	public void gaussianDistribution(double[][] tfidfMatrix){		//é«˜æ–¯åˆ†å¸ƒ
 		Iterator<Integer> iterator = numPostEveryTheme.iterator();
 		int flagRow=0;
 		int flagTheme=0;

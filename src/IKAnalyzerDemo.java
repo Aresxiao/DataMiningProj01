@@ -1,20 +1,13 @@
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
 import java.io.StringReader;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.Map.Entry;
-import java.util.regex.Pattern;
-
-
 import org.wltea.analyzer.IKSegmentation;
 import org.wltea.analyzer.Lexeme;
 
@@ -24,7 +17,7 @@ public class IKAnalyzerDemo {
 	
 	public static void main(String[] args) throws IOException{
 		
-		/*String string = "ÄãºÃ";
+		/*String string = "ä½ å¥½";
 		IKAnalyzerDemo demo = new IKAnalyzerDemo();
 		boolean b = demo.containChar(string);
 		System.out.println(b);
@@ -34,12 +27,14 @@ public class IKAnalyzerDemo {
 		Map<String,Integer> hashMap = new HashMap<String, Integer>();
 		Map<String, Integer> wordMap = new HashMap<String, Integer>();
 		ArrayList<String> wordArrayList = new ArrayList<String>();
+		ArrayList<Integer> numPostPerTheme = new ArrayList<Integer>();
+		Map<Integer, Integer> postToThemeMap = new HashMap<Integer, Integer>();
 		
-		int wordMapIndex=0;		//ĞòÁĞË÷Òı£¬×îºóµÃµ½µÄÊÇ×Ü´ÊÊı
+		int wordMapIndex=0;		//è¯çš„ç´¢å¼•ç»“æ„ï¼Œæœ€åå¾—åˆ°çš„æ˜¯è¯æ•°
 		int countPost=0;
 		int postIndex = 0;
 		String str = " ";
-		String directory = "lily\\";
+		String directory = "data\\";
 		String basketball=directory+"Basketball.txt";
 		String computer=directory+"D_Computer.txt";
 		String fleaMarket = directory+"FleaMarket.txt";
@@ -53,10 +48,15 @@ public class IKAnalyzerDemo {
 		
 		String[] post = {basketball,computer,fleaMarket,girls,jobExpress,mobile,stock,suggestion,
 				warAndPeace,WorldFootball};
-		for(int i=0;i<post.length;i++){			//µÃµ½ËùÓĞ´ÊµÄÁ´±íºÍ´Ê-ĞòºÅÓ³Éä
+		
+		
+		
+		for(int i=0;i<post.length;i++){			//å¾—åˆ°ä¸€ä¸ªè¯-åºå·çš„map
 			File file = new File(post[i]);
 			Scanner input = new Scanner(file);
+			int postPerTheme=0;
 	        while(input.hasNext()){
+	        	postPerTheme++;
 	        	countPost++;
 	        	str = input.nextLine();
 	        	StringReader reader = new StringReader(str);
@@ -73,8 +73,11 @@ public class IKAnalyzerDemo {
 	        		}
 	        	}
 	        }
+	        numPostPerTheme.add(postPerTheme);
 	        input.close();
 		}
+		
+		
 		
 		double[][] tfidfMatrix = new double[countPost][wordMapIndex];
 		for(int i = 0;i<countPost;i++)
@@ -82,7 +85,7 @@ public class IKAnalyzerDemo {
 				tfidfMatrix[i][j] = 0;
 		
 		
-		for(int i=0;i<post.length;i++){		//µÃµ½´ÊÆµÊı¾ØÕó
+		for(int i=0;i<post.length;i++){		//	å¾—åˆ°è¯é¢‘æ•°çš„çŸ©é˜µ
 			File file = new File(post[i]);
 			Scanner input = new Scanner(file);
 			while(input.hasNext()){
@@ -93,20 +96,8 @@ public class IKAnalyzerDemo {
 				Lexeme lexeme = null;
 	        	while((lexeme = ik.next())!=null){
 	        		String word = lexeme.getLexemeText();
-	        		if(!wordMap.containsKey(word)){
-	        			System.out.println(word+" Ã»ÓĞ³öÏÖ");
-	        		}
+	        		
 	        		int column = wordMap.get(word).intValue();
-	        		/*if(tfidfMatrix[postIndex-1][row]==0){
-	        			if(idfMap.containsKey(word)){
-	        				double v = idfMap.get(word).doubleValue();
-	        				v=v+1.0;
-	        				idfMap.put(word, v+1);
-	        			}
-	        			else {
-							idfMap.put(word, 1.0);
-						}
-	        		}*/
 	        		tfidfMatrix[postIndex-1][column]=tfidfMatrix[postIndex-1][column]+1;
 	        	}
 			}
@@ -129,7 +120,7 @@ public class IKAnalyzerDemo {
 			}
 		}
 		
-		for(int i = 0;i<countPost;i++){				//µÃµ½Ò»¸ö´ÊÆµ¾ØÕó£¬¼ÆËã·½·¨ÊÇ0.5+(0.5*f(w))/max(f(w))
+		for(int i = 0;i<countPost;i++){				//è®¡ç®—è¯çš„é¢‘ç‡ï¼Œä½¿ç”¨å…¬å¼0.5+(0.5*f(w))/max(f(w))
 			double wordsperPost = 0;
 			for(int j = 0;j<wordMapIndex;j++){
 				wordsperPost = wordsperPost + tfidfMatrix[i][j];
@@ -148,32 +139,29 @@ public class IKAnalyzerDemo {
 		}
 		
 		
-		
-		
 		Set<String> set = idfMap.keySet();
 		
-		Iterator iterator = set.iterator();
-		while(iterator.hasNext()){		//¼ÆËãÃ¿¸ö´ÊµÄidfÖµ
-			String word = iterator.next().toString();
+		Iterator<String> iterator = set.iterator();
+		while(iterator.hasNext()){		//è®¡ç®—æ¯ä¸ªè¯çš„idfå€¼
+			String word = iterator.next();
 			double d = idfMap.get(word).doubleValue();
 			d=Math.log(countPost)/Math.log(1+d);
 			idfMap.put(word, d);
 		}
 		
-		//File file = new File(directory+"tfidf.txt");
-		//PrintWriter pw = new PrintWriter(file);
-		for(int i=0;i<countPost;i++){		//¼ÆËãtf-idfµÄÖµ£¬´æ·ÅÔÚtfidfMatrix¾ØÕóÖĞ¡£
+		
+		for(int i=0;i<countPost;i++){		//è®¡ç®—tfidfMatrixçš„å€¼ã€‚
 			for(int j=0;j<wordMapIndex;j++){
 				String word = wordArrayList.get(j);
 				double idf = idfMap.get(word).doubleValue();
 				tfidfMatrix[i][j]=idf*tfidfMatrix[i][j];
 				System.out.println(tfidfMatrix[i][j]);
-				//pw.print(tfidfMatrix[i][j]+" ");
 			}
-			//pw.println();
 		}
-		//pw.close();
-		System.out.println("ÔËËãÍê³É");
+		
+		
+		
+		System.out.println("è¿ç®—å®Œæˆ");
 		
 		
 		//System.out.println(countPost+"\t"+wordMapIndex+"\t"+tf[0].length);
@@ -191,7 +179,7 @@ public class IKAnalyzerDemo {
 				str = input.nextLine();
 				//System.out.println(str);
 				StringReader reader = new StringReader(str);  
-		        IKSegmentation ik = new IKSegmentation(reader, true);// µ±ÎªtrueÊ±£¬·Ö´ÊÆ÷½øĞĞ×î´ó´Ê³¤ÇĞ·Ö  
+		        IKSegmentation ik = new IKSegmentation(reader, true);// é”Ÿæ–¤æ‹·ä¸ºtrueæ—¶é”Ÿæ–¤æ‹·é”Ÿè¡—è¾¾æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿç»ç­¹æ‹·é”Ÿå«å‡¤æ‹·  
 		        
 		        Lexeme lexeme = null;  
 		        while ((lexeme = ik.next()) != null){  
@@ -243,7 +231,7 @@ public class IKAnalyzerDemo {
 			str = iteratorKey.next().toString();
 			double d = idfMap.get(str).doubleValue();
 			d=d/countPost;
-			d=(Math.log(d))/(Math.log(2));		//¼ÆËã¶ÔÊıÖµ
+			d=(Math.log(d))/(Math.log(2));		//é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿè¡—ï¿½
 			idfMap.put(str, d);
 			outIDF.println(str+"\t"+d);
 		}
