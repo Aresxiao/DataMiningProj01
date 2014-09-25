@@ -53,7 +53,7 @@ public class IKAnalyzerDemo {
 		
 		String[] post = {basketball,computer,fleaMarket,girls,jobExpress,mobile,stock,suggestion,
 				warAndPeace,WorldFootball};
-		for(int i=0;i<post.length;i++){
+		for(int i=0;i<post.length;i++){			//得到所有词的链表和词-序号映射
 			File file = new File(post[i]);
 			Scanner input = new Scanner(file);
 	        while(input.hasNext()){
@@ -65,6 +65,7 @@ public class IKAnalyzerDemo {
 	        	Lexeme lexeme = null;
 	        	while((lexeme = ik.next())!=null){
 	        		String word = lexeme.getLexemeText();
+	        		
 	        		if(!wordMap.containsKey(word)){
 	        			wordMap.put(word, wordMapIndex);
 	        			wordArrayList.add(word);
@@ -72,6 +73,7 @@ public class IKAnalyzerDemo {
 	        		}
 	        	}
 	        }
+	        input.close();
 		}
 		
 		double[][] tfidfMatrix = new double[countPost][wordMapIndex];
@@ -80,18 +82,21 @@ public class IKAnalyzerDemo {
 				tfidfMatrix[i][j] = 0;
 		
 		
-		for(int i=0;i<post.length;i++){		//得到一个矩阵
+		for(int i=0;i<post.length;i++){		//得到词频数矩阵
 			File file = new File(post[i]);
 			Scanner input = new Scanner(file);
 			while(input.hasNext()){
 				postIndex++;
 				str = input.nextLine();
 				StringReader reader = new StringReader(str);
-				IKSegmentation ik = new IKSegmentation(reader);
+				IKSegmentation ik = new IKSegmentation(reader,true);
 				Lexeme lexeme = null;
 	        	while((lexeme = ik.next())!=null){
 	        		String word = lexeme.getLexemeText();
-	        		int row = wordMap.get(word).intValue();
+	        		if(!wordMap.containsKey(word)){
+	        			System.out.println(word+" 没有出现");
+	        		}
+	        		int column = wordMap.get(word).intValue();
 	        		/*if(tfidfMatrix[postIndex-1][row]==0){
 	        			if(idfMap.containsKey(word)){
 	        				double v = idfMap.get(word).doubleValue();
@@ -102,10 +107,13 @@ public class IKAnalyzerDemo {
 							idfMap.put(word, 1.0);
 						}
 	        		}*/
-	        		tfidfMatrix[postIndex-1][row]++;
+	        		tfidfMatrix[postIndex-1][column]=tfidfMatrix[postIndex-1][column]+1;
 	        	}
 			}
+			input.close();
 		}
+		
+		
 		for(int j=0;j<wordMapIndex;j++){
 			String word = wordArrayList.get(j);
 			if(!idfMap.containsKey(word)){
@@ -121,7 +129,7 @@ public class IKAnalyzerDemo {
 			}
 		}
 		
-		for(int i = 0;i<countPost;i++){
+		for(int i = 0;i<countPost;i++){				//得到一个词频矩阵，计算方法是0.5+(0.5*f(w))/max(f(w))
 			double wordsperPost = 0;
 			for(int j = 0;j<wordMapIndex;j++){
 				wordsperPost = wordsperPost + tfidfMatrix[i][j];
@@ -141,6 +149,7 @@ public class IKAnalyzerDemo {
 		
 		
 		
+		
 		Set<String> set = idfMap.keySet();
 		
 		Iterator iterator = set.iterator();
@@ -151,14 +160,20 @@ public class IKAnalyzerDemo {
 			idfMap.put(word, d);
 		}
 		
-		for(int i=0;i<countPost;i++){
+		//File file = new File(directory+"tfidf.txt");
+		//PrintWriter pw = new PrintWriter(file);
+		for(int i=0;i<countPost;i++){		//计算tf-idf的值，存放在tfidfMatrix矩阵中。
 			for(int j=0;j<wordMapIndex;j++){
 				String word = wordArrayList.get(j);
 				double idf = idfMap.get(word).doubleValue();
 				tfidfMatrix[i][j]=idf*tfidfMatrix[i][j];
+				System.out.println(tfidfMatrix[i][j]);
+				//pw.print(tfidfMatrix[i][j]+" ");
 			}
+			//pw.println();
 		}
-		
+		//pw.close();
+		System.out.println("运算完成");
 		
 		
 		//System.out.println(countPost+"\t"+wordMapIndex+"\t"+tf[0].length);
