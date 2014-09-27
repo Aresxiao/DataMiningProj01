@@ -19,7 +19,6 @@ public class IKAnalyzerDemo {
 		
 		
 		Map<String,Double> idfMap = new HashMap<String, Double>();
-		//Map<String,Integer> hashMap = new HashMap<String, Integer>();
 		Map<String, Integer> wordMap = new HashMap<String, Integer>();	//词和序号的map
 		ArrayList<String> wordArrayList = new ArrayList<String>();
 		ArrayList<Integer> numPostPerTheme = new ArrayList<Integer>();
@@ -74,7 +73,6 @@ public class IKAnalyzerDemo {
 	        	}
 	        }
 	        numPostPerTheme.add(postPerTheme);
-	        //System.out.println(i+"类中有"+postPerTheme+"个帖子");
 	        input.close();
 		}
 		
@@ -83,7 +81,7 @@ public class IKAnalyzerDemo {
 			for(int j = 0;j<wordMapIndex;j++)
 				tfidfMatrix[i][j] = 0;
 		
-		for(int i = 0;i<postArrayList.size();i++){
+		for(int i = 0;i<postArrayList.size();i++){		//得到一个词频数的矩阵。
 			String string = postArrayList.get(i);
 			StringReader reader = new StringReader(string);
 			IKSegmenter ik = new IKSegmenter(reader, true);
@@ -94,29 +92,8 @@ public class IKAnalyzerDemo {
 				tfidfMatrix[i][column] = tfidfMatrix[i][column]+1;
 			}
 		}
-		/*
-		for(int i=0;i<post.length;i++){		//	得到词频数的矩阵
-			File file = new File(post[i]);
-			Scanner input = new Scanner(file);
-			
-			while(input.hasNext()){
-				postToThemeMap.put(postIndex, i);
-				postIndex++;
-				str = input.nextLine();
-				StringReader reader = new StringReader(str);
-				IKSegmenter ik = new IKSegmenter(reader,true);
-				Lexeme lexeme = null;
-	        	while((lexeme = ik.next())!=null){
-	        		String word = lexeme.getLexemeText();
-	        		
-	        		int column = wordMap.get(word).intValue();
-	        		tfidfMatrix[postIndex-1][column]=tfidfMatrix[postIndex-1][column]+1;
-	        	}
-			}
-			input.close();
-		}
-		*/
-		System.out.println("-----------"+countPost+"  "+wordMapIndex+"-------------"+wordArrayList.size());
+		
+		
 		for(int j=0;j<wordMapIndex;j++){			//得到每个词在多少个帖子中出现过，以用来计算idf的值。
 			String word = wordArrayList.get(j);
 			if(!idfMap.containsKey(word)){
@@ -142,7 +119,6 @@ public class IKAnalyzerDemo {
 			idfMap.put(word, d);
 			
 		}
-		System.out.println("计算完idf 了");
 		/*
 		 * 	10交叉验证
 		 * 	
@@ -165,10 +141,9 @@ public class IKAnalyzerDemo {
 			int flagTrainRow = 0;
 			double[][] testMatrix = new double[testTotalPost][wordMapIndex];
 			for(int i = 0;i<countPost;i++){		
-				//System.out.println(k+" ---- "+i);
 				if((i%10)==k){			//测试集
 					for(int j = 0;j<wordMapIndex;j++){
-						//System.out.println(i+"  "+testTotalPost+"   "+flagTestRow);
+						
 						testMatrix[flagTestRow][j] = tfidfMatrix[i][j];  
 						
 					}
@@ -194,7 +169,6 @@ public class IKAnalyzerDemo {
 						int numPost = trainThemePostNumMap.get(whichTheme).intValue();
 						numPost = numPost+1;
 						trainThemePostNumMap.put(whichTheme, numPost);
-						//System.out.println("whichTheme:"+whichTheme+" "+numPost);
 					}
 					else{
 						trainThemePostNumMap.put(whichTheme, 1);
@@ -209,7 +183,6 @@ public class IKAnalyzerDemo {
 			nbd.setNumBoardMap();
 			for(int index=0;index<countTheme;index++){
 				int value = trainThemePostNumMap.get(index);
-				//System.out.println(value);
 				nbd.setNumPerTheme(value);
 			}
 			nbd.calcPriorProbability();
@@ -240,18 +213,7 @@ public class IKAnalyzerDemo {
 					wordsPerPost = trainMatrix[i][j]+wordsPerPost;
 				for(int j = 0;j<wordMapIndex;j++)
 					trainMatrix[i][j] = trainMatrix[i][j]/wordsPerPost;
-				/*
-				double max = trainMatrix[i][0];
-				for(int j=0;j<wordMapIndex;j++){
-					if(max<trainMatrix[i][j])
-						max = trainMatrix[i][j];
-				}
-				for(int j=0;j<wordMapIndex;j++){
-					trainMatrix[i][j] = 0.5+(0.5*trainMatrix[i][j])/max;
-					//if(trainMatrix[i][j]>0.5)
-						//System.out.println("训练集中"+wordsPerPost+"--"+trainMatrix[i][j]);
-				}
-				*/
+				
 			}
 			
 			
@@ -263,17 +225,7 @@ public class IKAnalyzerDemo {
 					sumWords = testMatrix[i][j]+sumWords;
 				for(int j = 0;j<wordMapIndex;j++)
 					testMatrix[i][j] = testMatrix[i][j]/sumWords;
-				/*
-				double max = testMatrix[i][0];
-				for(int j = 0;j<wordMapIndex;j++){
-					if(max<testMatrix[i][j])
-						max=testMatrix[i][j];
-				}
 				
-				for(int j = 0;j<wordMapIndex;j++){
-					testMatrix[i][j] = 0.5+(0.5*testMatrix[i][j])/max;
-					
-				}*/
 				
 			}
 			
@@ -283,7 +235,7 @@ public class IKAnalyzerDemo {
 					double idf = idfMap.get(word).doubleValue();
 					
 					trainMatrix[i][j]=idf*trainMatrix[i][j];
-					//System.out.println("训练集tf-idf：" + idf+"  "+trainMatrix[i][j]);
+					
 				}
 			}
 			//计算测试集中tfidf的值
@@ -332,7 +284,6 @@ public class IKAnalyzerDemo {
 				nbcg.setNumPerTheme(value);
 			}
 			nbcg.calcPriorProbability();
-			//nbcg.setWordsMatrix(trainMatrix);
 			nbcg.gaussianDistribution(trainMatrix);
 			double sumNBCG = 0;
 			
@@ -385,117 +336,7 @@ public class IKAnalyzerDemo {
 		System.out.println("NBCG 平均值为"+averageNBCG+",方差为 "+varianceNBCG);
 		System.out.println("--运算完成--");
 		
-		/*
-		for(int i = 0;i<countPost;i++){				//计算词的频率，使用公式0.5+(0.5*f(w))/max(f(w))
-			double wordsperPost = 0;
-			for(int j = 0;j<wordMapIndex;j++){
-				wordsperPost = wordsperPost + tfidfMatrix[i][j];
-			}
-			for(int j = 0;j<wordMapIndex;j++){
-				tfidfMatrix[i][j] = tfidfMatrix[i][j]/wordsperPost;
-			}
-			double max=tfidfMatrix[i][0];
-			for(int j = 0;j<wordMapIndex;j++){
-				if(max<tfidfMatrix[i][j])
-					max = tfidfMatrix[i][j];
-			}
-			for(int j = 0;j<wordMapIndex;j++){
-				tfidfMatrix[i][j] = 0.5+(0.5*tfidfMatrix[i][j])/max;
-			}
-		}
 		
-		
-		
-		
-		
-		for(int i=0;i<countPost;i++){		//计算tfidfMatrix的值。
-			for(int j=0;j<wordMapIndex;j++){
-				String word = wordArrayList.get(j);
-				double idf = idfMap.get(word).doubleValue();
-				tfidfMatrix[i][j]=idf*tfidfMatrix[i][j];
-				System.out.println(tfidfMatrix[i][j]);
-			}
-		}
-		
-		
-		
-		System.out.println("运算完成");
-		*/
-		
-		//System.out.println(countPost+"\t"+wordMapIndex+"\t"+tf[0].length);
-		
-		
-		/*
-		for(int i=0;i<post.length;i++){
-			File file = new File(post[i]);
-			Scanner input = new Scanner(file);
-			File of = new File(directory+i+"tf.txt");
-	        PrintWriter pw = new PrintWriter(of);
-	        
-			while(input.hasNext()){
-				countPost++;
-				str = input.nextLine();
-				//System.out.println(str);
-				StringReader reader = new StringReader(str);  
-		        IKSegmentation ik = new IKSegmentation(reader, true);// 锟斤拷为true时锟斤拷锟街达拷锟斤拷锟斤拷锟斤拷锟斤拷锟绞筹拷锟叫凤拷  
-		        
-		        Lexeme lexeme = null;  
-		        while ((lexeme = ik.next()) != null){  
-		        	String word = lexeme.getLexemeText();
-		        	if(hashMap.containsKey(word)){
-		        		int v = hashMap.get(word).intValue();
-		        		v++;
-		        		hashMap.put(word, v);
-		        	}
-		        	else{
-		        		if(idfMap.containsKey(word)){
-		        			double v = idfMap.get(word).doubleValue();
-		        			v=v+1.0;
-		        			idfMap.put(word, v);
-		        		}
-		        		else {
-		        			idfMap.put(word, 1.0);
-						}
-		        		hashMap.put(word, 1);
-		        	}
-		            //System.out.println(lexeme.getLexemeText());  
-		        }
-		        
-				Set<String> set=hashMap.keySet();
-				Iterator iteratorKey = set.iterator();
-				float sum=0;
-				while(iteratorKey.hasNext()){
-					sum = sum+hashMap.get(iteratorKey.next().toString()).intValue();
-				}
-				iteratorKey = set.iterator();
-				while(iteratorKey.hasNext()){
-					String string = iteratorKey.next().toString();
-					float f = (float)(hashMap.get(string).intValue())/(float)sum;
-					string = string+"\t";
-					
-					pw.print(string);
-					pw.println(f);
-					System.out.println(string+f);
-				}
-				pw.println("------------------------");
-			}
-			pw.close();
-		}
-		File idfFile = new File(directory+"idf.txt");
-		PrintWriter outIDF = new PrintWriter(idfFile);
-		Set<String> set = idfMap.keySet();
-		Iterator iteratorKey = set.iterator();
-		while(iteratorKey.hasNext()){
-			str = iteratorKey.next().toString();
-			double d = idfMap.get(str).doubleValue();
-			d=d/countPost;
-			d=(Math.log(d))/(Math.log(2));		//锟斤拷锟斤拷锟斤拷锟街�
-			idfMap.put(str, d);
-			outIDF.println(str+"\t"+d);
-		}
-		
-		outIDF.close();
-		*/
 	}
 	
 	
