@@ -7,6 +7,6 @@
 	<classpathentry kind="lib" path="E:/eclipse/project/DataMiningProj01/lib/lucene-core-3.4.0-javadoc.jar"/>
 	<classpathentry kind="lib" path="E:/eclipse/project/DataMiningProj01/lib/lucene-test-framework-3.4.0.jar"/>
 	<classpathentry kind="lib" path="E:/eclipse/project/DataMiningProj01/lib/lucene-test-framework-3.4.0-javadoc.jar"/>
-	<classpathentry kind="lib" path="E:/eclipse/project/DataMiningProj01/lib/IKAnalyzer3.2.8.jar"/>
+	<classpathentry kind="lib" path="E:/eclipse/project/DataMiningProj01/lib/IKAnalyzer2012_u6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

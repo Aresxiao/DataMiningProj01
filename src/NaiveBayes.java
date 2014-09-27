@@ -18,7 +18,8 @@ public class NaiveBayes {
 	
 	double[][] averagePerWord;				//平均数矩阵
 	double[][] variancePerWord;				//方差矩阵
-	
+	double[][][] discreteProbMatrix;			//离散化连续属性保存概率
+	int numPossible=2;
 	
 	public NaiveBayes(int countPost,int countKeywords,int countTheme){
 		arrayPriorProbability = new ArrayList<Double>();
@@ -29,6 +30,7 @@ public class NaiveBayes {
 		perWordProbability = new double[totalTheme][totalKeywords];
 		averagePerWord = new double[totalTheme][totalKeywords];
 		variancePerWord = new double[totalTheme][totalKeywords];
+		discreteProbMatrix = new double[totalTheme][totalKeywords][numPossible];
 		numBoardMap = new HashMap<Integer, String>();
 		initial();
 	}
@@ -38,6 +40,7 @@ public class NaiveBayes {
 			for(int j = 0;j<totalKeywords;j++)
 				perWordProbability[i][j]=0;
 	}
+	
 	
 	public void setNumBoardMap(){
 		numBoardMap.put(0, "Basketball");
@@ -60,21 +63,21 @@ public class NaiveBayes {
 		this.totalPost = countPost;
 	}
 	
-	public void priorProbability(int i){		//计算先验概率
-		double d = numPostEveryTheme.get(i).doubleValue()/totalPost;
-		arrayPriorProbability.add(d);
+	public void calcPriorProbability(){		//计算先验概率
+		for(int i = 0;i<totalTheme;i++){
+			double d = numPostEveryTheme.get(i).doubleValue()/totalPost;
+			arrayPriorProbability.add(d);
+		}
 		return ;
 	}
 	
-	void perWordProbability(double[][] tfidfMatrix,int sumWord,int i){		//计算每个词的权重
-		
-	}
 	
 	double getCountWordsPerClass(int i){
 		double sum=0;
 		return sum;
 	}
 	public void setWordsMatrix(double[][] matrix){
+		System.out.println("---"+totalPost+"---" +totalKeywords+" ---");
 		for(int i = 0;i < totalPost;i++){
 			
 			for(int j = 0;j < totalKeywords;j++){
@@ -86,7 +89,8 @@ public class NaiveBayes {
 	 *  @param tfidfMatrix矩阵是一个频数矩阵，根据矩阵每个词的条件概率，并存放在perWordProbability矩阵中
 	 *  
 	 */
-	public void discreteContinuousAttributeNBD(double[][] tfidfMatrix){			
+	public void discreteContinuousAttributeNBD(double[][] tfidfMatrix){		
+		
 		Iterator<Integer> iterator = numPostEveryTheme.iterator();
 		int flagRow = 0;
 		int flagTheme=0;
@@ -116,6 +120,15 @@ public class NaiveBayes {
 	 * 计算得到的
 	 */
 	
+	public int discreteProceudre(double x){
+		if(x<4)
+			return 0;
+		
+		else {
+			return 1;
+		}
+	}
+	
 	public void discreteContinuousAttributeNBCD(double[][] tfidfMatrix){
 		Iterator<Integer> iterator = numPostEveryTheme.iterator();
 		int flagRow = 0;
@@ -123,38 +136,58 @@ public class NaiveBayes {
 		while(iterator.hasNext()){
 			int numPost = iterator.next().intValue();
 			for(int j=0;j<totalKeywords;j++){
-				for(int i=flagRow;i<(flagRow+numPost);i++){
-					int discreteValue;
-					if(tfidfMatrix[i][j]<1.5)
-						discreteValue=1;
-					else if(tfidfMatrix[i][j]<2.5){
-						discreteValue=2;
-					}
-					else if(tfidfMatrix[i][j]<3.5)
-						discreteValue=3;
-					else if(tfidfMatrix[i][j]<4.5){
-						discreteValue=4;
-					}
-					else {
-						discreteValue=5;
-					}
-					perWordProbability[flagTheme][j] = perWordProbability[flagTheme][j]+discreteValue;
+				for(int i = flagRow;i<(flagRow+numPost);i++){
+					perWordProbability[flagTheme][j]=perWordProbability[flagTheme][j]+tfidfMatrix[i][j];
 				}
-				
 			}
 			flagRow = flagRow+numPost;
 			flagTheme++;
 		}
 		for(int i = 0;i<totalTheme;i++){
-			double sum = 0;
-			for(int j = 0;j<totalKeywords;j++){
-				sum = sum+perWordProbability[i][j];
-			}
-			for(int j = 0;j<totalKeywords;j++)
-				perWordProbability[i][j] = (perWordProbability[i][j]+0.001)/(sum+(double)(totalKeywords)*0.001);
+			double sum =0;
+			for(int j=0;j<totalKeywords;j++)
+				sum = sum + perWordProbability[i][j];	
+			for(int j=0;j<totalKeywords;j++)
+				perWordProbability[i][j] = (perWordProbability[i][j]+0.00001)/(sum+totalKeywords*0.00001);
 		}
 	}
 	
+	/*
+	public void discreteContinuousAttributeNBCD(double[][] tfidfMatrix){
+		for(int i = 0;i<totalTheme;i++)
+			for(int j = 0;j<totalKeywords;j++)
+				for(int k = 0;k<numPossible;k++)
+					discreteProbMatrix[i][j][k]=0;
+		
+		Iterator<Integer> iterator = numPostEveryTheme.iterator();
+		int flagRow = 0;
+		int flagTheme = 0;
+		while(iterator.hasNext()){
+			int numPost = iterator.next().intValue();
+			for(int j=0;j<totalKeywords;j++){
+				//double sum = 0;
+				for(int i=flagRow;i<(flagRow+numPost);i++){
+					int discreteValue = discreteProceudre(tfidfMatrix[i][j]);
+					discreteProbMatrix[flagTheme][j][discreteValue]=
+							discreteProbMatrix[flagTheme][j][discreteValue]+1;
+					//perWordProbability[flagTheme][j] = perWordProbability[flagTheme][j]+discreteValue;
+				}
+			}
+			flagRow = flagRow+numPost;
+			flagTheme++;
+		}
+		for(int i = 0;i<totalTheme;i++){
+			
+			for(int j = 0;j<totalKeywords;j++){
+				double sum = 0;
+				for(int k = 0;k<numPossible;k++)
+					sum = sum+discreteProbMatrix[i][j][k];
+				for(int k = 0;k<numPossible;k++)
+					discreteProbMatrix[i][j][k] = (discreteProbMatrix[i][j][k]+0.001)/(sum+0.001*numPossible);
+			}
+		}
+	}
+	*/
 	public void gaussianDistribution(double[][] tfidfMatrix){		//高斯分布
 		Iterator<Integer> iterator = numPostEveryTheme.iterator();
 		int flagRow=0;
@@ -174,10 +207,11 @@ public class NaiveBayes {
 				for(int i = flagRow;i<(flagRow+numPost);i++){
 					sum=sum+(tfidfMatrix[i][j]-average)*(tfidfMatrix[i][j]-average);
 				}
-				variance = sum/numPost+0.00000001;
+				variance = sum/numPost+0.00001;		//加上一个极小量，以防为0.
 				
 				averagePerWord[flagTheme][j] = average;
 				variancePerWord[flagTheme][j] = variance;
+				
 			}
 			flagRow = flagRow+numPost;
 			flagTheme++;
@@ -207,6 +241,30 @@ public class NaiveBayes {
 		return max;
 	}
 	
+	public int classifyUseDiscreteNBCD(Map<Integer, Double> map){
+		double[] probClassify = new double[totalTheme];
+		for(int i = 0;i<totalTheme;i++){
+			probClassify[i] = 0;
+		}
+		for(int i=0;i<totalTheme;i++){
+			Set<Integer> set = map.keySet();
+			Iterator<Integer> iterator = set.iterator();
+			while(iterator.hasNext()){
+				int column = iterator.next();
+				probClassify[i]=probClassify[i]+Math.log(perWordProbability[i][column]);
+			}
+			probClassify[i] = probClassify[i]+Math.log(arrayPriorProbability.get(i).doubleValue());
+			
+		}
+		int max=0;
+		for(int i=0;i<totalTheme;i++){
+			if(probClassify[max]<probClassify[i])
+				max=i;
+		}
+		return max;
+	}
+	
+	/*
 	public int classifyUseDiscreteNBCD(Map<Integer,Double> map){
 		double[] probClassify = new double[totalTheme];
 		for(int i = 0;i<totalTheme;i++){
@@ -217,7 +275,10 @@ public class NaiveBayes {
 			Iterator<Integer> iterator = set.iterator();
 			while(iterator.hasNext()){
 				int column = iterator.next();
-				probClassify[i] = probClassify[i]+Math.log(perWordProbability[i][column]);
+				double tfidf = map.get(column);
+				int discreteValue = discreteProceudre(tfidf);
+				
+				probClassify[i] = probClassify[i]+Math.log(discreteProbMatrix[i][column][discreteValue]);
 			}
 			probClassify[i] = probClassify[i]+Math.log(arrayPriorProbability.get(i).doubleValue());
 		}
@@ -228,7 +289,7 @@ public class NaiveBayes {
 		}
 		return max;
 	}
-	
+	*/
 	public int classifyUseGaussianNBCG(Map<Integer, Double> map){		//NBCG
 		double[] probClassify = new double[totalTheme];
 		for(int i = 0;i<totalTheme;i++){
@@ -241,9 +302,12 @@ public class NaiveBayes {
 			while(iterator.hasNext()){
 				int value = iterator.next();
 				double tfIdfValue = map.get(value).doubleValue();
-				double pCondition = Math.log(1/(Math.sqrt(2*Math.PI*variancePerWord[i][value])))
+				double pCondition = 0;
+				
+				pCondition = Math.log(1/(Math.sqrt(2*Math.PI*variancePerWord[i][value])))
 						-((tfIdfValue-averagePerWord[i][value])*(tfIdfValue-averagePerWord[i][value])
 						/(2*variancePerWord[i][value]));
+				
 				probClassify[i] = probClassify[i]+pCondition;
 			}
 			probClassify[i]=probClassify[i]+Math.log(arrayPriorProbability.get(i).doubleValue());
