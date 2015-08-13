@@ -24,6 +24,7 @@ public class NaiveBayes {
 	public NaiveBayes(int countPost,int countKeywords,int countTheme){
 		arrayPriorProbability = new ArrayList<Double>();
 		numPostEveryTheme = new ArrayList<Integer>();
+		
 		totalKeywords = countKeywords;
 		totalPost = countPost;
 		totalTheme = countTheme;
@@ -115,13 +116,8 @@ public class NaiveBayes {
 		}
 	}
 	
-	/*
-	 * @param 传入的tfidfMatrix是一个计算好tfidf值得矩阵，值是连续的，需要对其进行离散化。
-	 * 计算得到的
-	 */
-	
 	public int discreteProceudre(double x){
-		if(x<4)
+		if(x<3.4)
 			return 0;
 		
 		else {
